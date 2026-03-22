@@ -6,7 +6,7 @@ import anthropic
 from dotenv import load_dotenv
 
 load_dotenv()
-_client = anthropic.Anthropic(api_key=os.environ["ANTHROPIC_API_KEY"])
+_client = anthropic.Anthropic(api_key=os.environ.get("ANTHROPIC_API_KEY", ""))
 PARSER_MODEL = "claude-haiku-4-5-20251001"
 
 SYSTEM_PROMPT = """Classifique mensagens financeiras pessoais. Responda APENAS com JSON válido, sem markdown.
@@ -42,18 +42,31 @@ class ParsedMessage:
 
 
 def parse_message(text: str) -> ParsedMessage:
-    resp = _client.messages.create(
-        model=PARSER_MODEL,
-        max_tokens=256,
-        system=SYSTEM_PROMPT,
-        messages=[{"role": "user", "content": text}],
-    )
-    data = json.loads(resp.content[0].text)
-    return ParsedMessage(
-        intent=Intent(data["intent"]),
-        amount=data.get("amount"),
-        description=data.get("description"),
-        category=data.get("category") or "Outros",
-        date=data.get("date"),
-        raw=text,
-    )
+    try:
+        resp = _client.messages.create(
+            model=PARSER_MODEL,
+            max_tokens=256,
+            system=SYSTEM_PROMPT,
+            messages=[{"role": "user", "content": text}],
+        )
+        if not resp.content:
+            raise ValueError("Empty response content")
+        data = json.loads(resp.content[0].text)
+        intent = Intent(data["intent"])
+        return ParsedMessage(
+            intent=intent,
+            amount=data.get("amount"),
+            description=data.get("description"),
+            category=data.get("category") or "Outros",
+            date=data.get("date"),
+            raw=text,
+        )
+    except (json.JSONDecodeError, KeyError, ValueError):
+        return ParsedMessage(
+            intent=Intent.HELP,
+            amount=None,
+            description=None,
+            category="Outros",
+            date=None,
+            raw=text,
+        )
