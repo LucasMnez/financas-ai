@@ -55,7 +55,7 @@ class BotHandler:
         # Ensure admin is always in DB as ADMIN status
         if self.admin_chat_id:
             user = self.store.get_user(self.admin_chat_id)
-            if user is None:
+            if user is None or user["status"] != UserStatus.ADMIN:
                 self.store.upsert_user(self.admin_chat_id, UserStatus.ADMIN)
 
     def handle(self, text: str, chat_id: int) -> str:
