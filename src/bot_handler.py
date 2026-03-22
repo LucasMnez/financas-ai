@@ -99,10 +99,9 @@ class BotHandler:
         valor = f"R$ {self.pix_amount:.2f}" if self.pix_amount else "o valor combinado"
         return (
             f"👋 Olá! Este é um assistente financeiro pessoal.\n\n"
-            f"Para ter acesso, faça um PIX de *{valor}* para:\n"
-            f"🔑 Chave: `{self.pix_key}`\n\n"
-            f"Informe seu chat_id ao administrador:\n"
-            f"`{chat_id}`\n\n"
+            f"Para ter acesso, faça um PIX de {valor} para:\n"
+            f"🔑 Chave: {self.pix_key}\n\n"
+            f"Informe seu chat_id ao administrador: {chat_id}\n\n"
             f"Após o pagamento, seu acesso será liberado. ✅"
         )
 
