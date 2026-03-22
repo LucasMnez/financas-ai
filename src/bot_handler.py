@@ -2,6 +2,7 @@ import os
 from datetime import date
 from pathlib import Path
 import pandas as pd
+from telegram.helpers import escape_markdown as esc
 
 from src.parser import parse_message, Intent
 from src.store import TransactionStore, UserStatus
@@ -68,9 +69,9 @@ class BotHandler:
 
         # State gate
         user = self.store.get_user(chat_id)
-        if user is None or user["status"] == UserStatus.PENDING:
-            if user is None:
-                self.store.upsert_user(chat_id, UserStatus.PENDING)
+        if user is None:
+            return self._handle_start(chat_id)  # shows PIX info and saves PENDING
+        if user["status"] == UserStatus.PENDING:
             return "⏳ Seu cadastro está *pendente*. Aguarde a confirmação do pagamento."
 
         # Active user
@@ -149,15 +150,18 @@ class BotHandler:
             chat_id=chat_id,
         )
 
-        from telegram.helpers import escape_markdown as esc
         emoji = "💸" if tx_type == "expense" else "💰"
         label = "Despesa" if tx_type == "expense" else "Receita"
+        amount_str = esc(f"R$ {parsed.amount:.2f}", version=2)
+        cat_str = esc(parsed.category or "", version=2)
+        desc_str = esc(parsed.description or "", version=2)
+        date_str = esc(tx_date, version=2)
         return (
-            f"{emoji} *{label} lançada\!*\n"
-            f"Valor: R$ {parsed.amount:.2f}\n"
-            f"Categoria: {esc(parsed.category or '', version=2)}\n"
-            f"Descrição: {esc(parsed.description or '', version=2)}\n"
-            f"Data: {tx_date}"
+            f"{emoji} *{label} lançada\\!*\n"
+            f"Valor: {amount_str}\n"
+            f"Categoria: {cat_str}\n"
+            f"Descrição: {desc_str}\n"
+            f"Data: {date_str}"
         )
 
     def _handle_query(self, text: str, chat_id: int) -> str:

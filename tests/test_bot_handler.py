@@ -58,3 +58,15 @@ def test_active_user_help(handler):
     with patch("src.bot_handler.parse_message", return_value=p):
         reply = handler.handle("/ajuda", chat_id=USER_ID)
     assert "gastei" in reply.lower()
+
+def test_non_admin_cannot_activate_users(handler):
+    handler.store.upsert_user(USER_ID, UserStatus.ACTIVE)
+    other_user = 888888888
+    handler.store.upsert_user(other_user, UserStatus.PENDING)
+    # USER_ID (not admin) tries to activate other_user
+    p = ParsedMessage(intent=Intent.HELP, amount=None, description=None,
+                      category=None, date=None, raw=f"/ativar {other_user}")
+    with patch("src.bot_handler.parse_message", return_value=p):
+        reply = handler.handle(f"/ativar {other_user}", chat_id=USER_ID)
+    # Should NOT activate — other_user still PENDING
+    assert handler.store.get_user(other_user)["status"] == UserStatus.PENDING
