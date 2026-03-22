@@ -2,12 +2,14 @@ import os
 from datetime import date
 from pathlib import Path
 import pandas as pd
-from telegram.helpers import escape_markdown as esc
 
 from src.parser import parse_message, Intent
 from src.store import TransactionStore, UserStatus
 
 DATA_DIR = Path(__file__).parent.parent / "data"
+
+EMPTY_EXPENSES = pd.DataFrame(columns=["DESCRIÇÃO", "LANÇAMENTO", "VENCIMENTO", "EFETIVAÇÃO", "CATEGORIA", "SUBCATEGORIA", "CARTÃO", "CONTA", "VALOR", "OBSERVAÇÕES"])
+EMPTY_INCOME = pd.DataFrame(columns=["DESCRIÇÃO", "LANÇAMENTO", "VENCIMENTO", "EFETIVAÇÃO", "CATEGORIA", "SUBCATEGORIA", "CONTA", "VALOR", "OBSERVAÇÕES"])
 
 HELP_TEXT = """*Assistente Financeiro* 💰
 
@@ -43,6 +45,8 @@ class BotHandler:
     ):
         self.store = TransactionStore(db_path) if db_path else TransactionStore()
         self.admin_chat_id = admin_chat_id or int(os.environ.get("ADMIN_CHAT_ID", "0"))
+        if not self.admin_chat_id:
+            raise ValueError("ADMIN_CHAT_ID must be set (env var or constructor param)")
         self.pix_key = pix_key or os.environ.get("PIX_KEY", "")
         self.pix_amount = pix_amount or float(os.environ.get("PIX_AMOUNT", "0"))
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
@@ -152,16 +156,12 @@ class BotHandler:
 
         emoji = "💸" if tx_type == "expense" else "💰"
         label = "Despesa" if tx_type == "expense" else "Receita"
-        amount_str = esc(f"R$ {parsed.amount:.2f}", version=2)
-        cat_str = esc(parsed.category or "", version=2)
-        desc_str = esc(parsed.description or "", version=2)
-        date_str = esc(tx_date, version=2)
         return (
-            f"{emoji} *{label} lançada\\!*\n"
-            f"Valor: {amount_str}\n"
-            f"Categoria: {cat_str}\n"
-            f"Descrição: {desc_str}\n"
-            f"Data: {date_str}"
+            f"{emoji} *{label} lançada!*\n"
+            f"Valor: R$ {parsed.amount:.2f}\n"
+            f"Categoria: {parsed.category}\n"
+            f"Descrição: {parsed.description}\n"
+            f"Data: {tx_date}"
         )
 
     def _handle_query(self, text: str, chat_id: int) -> str:
@@ -175,8 +175,8 @@ class BotHandler:
         expenses_path = _find_latest("despesas-*.csv")
         income_path = _find_latest("receitas-*.csv")
 
-        expenses_df = load_csv(expenses_path) if expenses_path else pd.DataFrame()
-        income_df = load_csv(income_path) if income_path else pd.DataFrame()
+        expenses_df = load_csv(expenses_path) if expenses_path else EMPTY_EXPENSES.copy()
+        income_df = load_csv(income_path) if income_path else EMPTY_INCOME.copy()
 
         wa_exp = self.store.get_transactions_df(year, month, type="expense")
         wa_inc = self.store.get_transactions_df(year, month, type="income")

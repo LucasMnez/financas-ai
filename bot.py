@@ -29,12 +29,11 @@ async def _reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     logger.info(f"[{chat_id}] {text[:60]}")
     try:
         reply = _handler.handle(text, chat_id=chat_id)
-        await update.message.reply_text(reply, parse_mode="MarkdownV2")
+        await update.message.reply_text(reply, parse_mode="Markdown")
     except Exception as e:
         logger.error(f"Error handling message from {chat_id}: {e}")
         await update.message.reply_text(
-            "⚠️ Erro interno\\. Tente novamente em instantes\\.",
-            parse_mode="MarkdownV2",
+            "⚠️ Erro interno. Tente novamente em instantes.",
         )
 
 
