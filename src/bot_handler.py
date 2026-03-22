@@ -11,19 +11,19 @@ DATA_DIR = Path(__file__).parent.parent / "data"
 EMPTY_EXPENSES = pd.DataFrame(columns=["DESCRIÇÃO", "LANÇAMENTO", "VENCIMENTO", "EFETIVAÇÃO", "CATEGORIA", "SUBCATEGORIA", "CARTÃO", "CONTA", "VALOR", "OBSERVAÇÕES"])
 EMPTY_INCOME = pd.DataFrame(columns=["DESCRIÇÃO", "LANÇAMENTO", "VENCIMENTO", "EFETIVAÇÃO", "CATEGORIA", "SUBCATEGORIA", "CONTA", "VALOR", "OBSERVAÇÕES"])
 
-HELP_TEXT = """*Assistente Financeiro* 💰
+HELP_TEXT = """Assistente Financeiro 💰
 
-*Lançamentos:*
-• _gastei 50 no mercado_ → despesa
-• _recebi 200 pix da raissa_ → receita
-• _paguei 150 de luz_ → despesa
+Lançamentos:
+• gastei 50 no mercado → despesa
+• recebi 200 pix da raissa → receita
+• paguei 150 de luz → despesa
 
-*Consultas:*
-• _resumo_ — resumo do mês
-• _saldo_ — quanto sobra
+Consultas:
+• resumo — resumo do mês
+• saldo — quanto sobra
 • Qualquer pergunta livre para a IA
 
-*Comandos:*
+Comandos:
 • /ajuda — este menu
 • /start — cadastro inicial
 """
@@ -93,7 +93,7 @@ class BotHandler:
     def _handle_start(self, chat_id: int) -> str:
         user = self.store.get_user(chat_id)
         if user and user["status"] in (UserStatus.ACTIVE, UserStatus.ADMIN):
-            return "✅ Você já tem acesso! Envie _ajuda_ para ver os comandos disponíveis."
+            return "✅ Você já tem acesso! Envie /ajuda para ver os comandos disponíveis."
         if user is None:
             self.store.upsert_user(chat_id, UserStatus.PENDING)
         valor = f"R$ {self.pix_amount:.2f}" if self.pix_amount else "o valor combinado"
