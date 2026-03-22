@@ -20,11 +20,12 @@ def _format_report_as_context(report: MonthlyReport) -> str:
 
     if report.vs_previous_total is not None:
         sign = "+" if report.vs_previous_total >= 0 else ""
+        pct = f" ({sign}{report.vs_previous_total / report.previous_month_total * 100:.1f}%)" if report.previous_month_total else ""
         lines += [
             "",
             "## Comparação com mês anterior",
             f"- Mês anterior: R$ {report.previous_month_total:.2f}",
-            f"- Variação: {sign}R$ {report.vs_previous_total:.2f} ({sign}{report.vs_previous_total / report.previous_month_total * 100:.1f}%)",
+            f"- Variação: {sign}R$ {report.vs_previous_total:.2f}{pct}",
         ]
 
     lines += ["", "## Gastos por categoria"]
