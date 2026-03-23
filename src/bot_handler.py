@@ -58,37 +58,38 @@ class BotHandler:
             if user is None or user["status"] != UserStatus.ADMIN:
                 self.store.upsert_user(self.admin_chat_id, UserStatus.ADMIN)
 
-    def handle(self, text: str, chat_id: int) -> str:
+    def handle(self, text: str, chat_id: int) -> tuple[str, bool]:
+        """Returns (reply_text, use_markdown)."""
         text = text.strip()
 
         # Admin commands (only from admin chat_id)
         if chat_id == self.admin_chat_id:
             admin_reply = self._handle_admin(text)
             if admin_reply is not None:
-                return admin_reply
+                return admin_reply, False
 
         # /start always triggers registration flow
         if text.lower() == "/start":
-            return self._handle_start(chat_id)
+            return self._handle_start(chat_id), False
 
         # State gate
         user = self.store.get_user(chat_id)
         if user is None:
-            return self._handle_start(chat_id)  # shows PIX info and saves PENDING
+            return self._handle_start(chat_id), False  # shows PIX info and saves PENDING
         if user["status"] == UserStatus.PENDING:
-            return "⏳ Seu cadastro está *pendente*. Aguarde a confirmação do pagamento."
+            return "⏳ Seu cadastro está pendente. Aguarde a confirmação do pagamento.", False
 
         # Active user
         if text.lower() in ("/ajuda", "ajuda"):
-            return HELP_TEXT
+            return HELP_TEXT, False
 
         parsed = parse_message(text)
 
         if parsed.intent == Intent.HELP:
-            return HELP_TEXT
+            return HELP_TEXT, False
         if parsed.intent in (Intent.EXPENSE, Intent.INCOME):
-            return self._handle_transaction(parsed, chat_id)
-        return self._handle_query(text, chat_id)
+            return self._handle_transaction(parsed, chat_id), False
+        return self._handle_query(text, chat_id), True
 
     def _handle_start(self, chat_id: int) -> str:
         user = self.store.get_user(chat_id)

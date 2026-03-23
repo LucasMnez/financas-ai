@@ -22,32 +22,32 @@ def parsed(intent, amount=None, desc=None, cat="Alimentação", date="2026-04-10
 
 def test_unknown_user_receives_pix_info(handler):
     with patch("src.bot_handler.parse_message"):
-        reply = handler.handle("/start", chat_id=USER_ID)
+        reply, _ = handler.handle("/start", chat_id=USER_ID)
     assert "PIX" in reply or "pix" in reply.lower()
     assert handler.store.get_user(USER_ID)["status"] == UserStatus.PENDING
 
 def test_pending_user_receives_wait_message(handler):
     handler.store.upsert_user(USER_ID, UserStatus.PENDING)
     with patch("src.bot_handler.parse_message"):
-        reply = handler.handle("oi", chat_id=USER_ID)
+        reply, _ = handler.handle("oi", chat_id=USER_ID)
     assert "aguard" in reply.lower() or "pend" in reply.lower()
 
 def test_admin_activates_user(handler):
     handler.store.upsert_user(USER_ID, UserStatus.PENDING)
-    reply = handler.handle(f"/ativar {USER_ID}", chat_id=ADMIN_ID)
+    reply, _ = handler.handle(f"/ativar {USER_ID}", chat_id=ADMIN_ID)
     assert "ativado" in reply.lower()
     assert handler.store.get_user(USER_ID)["status"] == UserStatus.ACTIVE
 
 def test_admin_lists_pending(handler):
     handler.store.upsert_user(USER_ID, UserStatus.PENDING)
-    reply = handler.handle("/pendentes", chat_id=ADMIN_ID)
+    reply, _ = handler.handle("/pendentes", chat_id=ADMIN_ID)
     assert str(USER_ID) in reply
 
 def test_active_user_expense(handler):
     handler.store.upsert_user(USER_ID, UserStatus.ACTIVE)
     p = parsed(Intent.EXPENSE, amount=50.0, desc="mercado")
     with patch("src.bot_handler.parse_message", return_value=p):
-        reply = handler.handle("gastei 50 no mercado", chat_id=USER_ID)
+        reply, _ = handler.handle("gastei 50 no mercado", chat_id=USER_ID)
     assert "50" in reply
     df = handler.store.get_transactions_df(2026, 4, type="expense")
     assert len(df) == 1
@@ -56,7 +56,7 @@ def test_active_user_help(handler):
     handler.store.upsert_user(USER_ID, UserStatus.ACTIVE)
     p = parsed(Intent.HELP)
     with patch("src.bot_handler.parse_message", return_value=p):
-        reply = handler.handle("/ajuda", chat_id=USER_ID)
+        reply, _ = handler.handle("/ajuda", chat_id=USER_ID)
     assert "gastei" in reply.lower()
 
 def test_non_admin_cannot_activate_users(handler):
@@ -67,6 +67,6 @@ def test_non_admin_cannot_activate_users(handler):
     p = ParsedMessage(intent=Intent.HELP, amount=None, description=None,
                       category=None, date=None, raw=f"/ativar {other_user}")
     with patch("src.bot_handler.parse_message", return_value=p):
-        reply = handler.handle(f"/ativar {other_user}", chat_id=USER_ID)
+        reply, _ = handler.handle(f"/ativar {other_user}", chat_id=USER_ID)
     # Should NOT activate — other_user still PENDING
     assert handler.store.get_user(other_user)["status"] == UserStatus.PENDING

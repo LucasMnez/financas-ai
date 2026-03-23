@@ -28,8 +28,9 @@ async def _reply(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     text = update.message.text or ""
     logger.info(f"[{chat_id}] {text[:60]}")
     try:
-        reply = _handler.handle(text, chat_id=chat_id)
-        await update.message.reply_text(reply)
+        reply, use_markdown = _handler.handle(text, chat_id=chat_id)
+        parse_mode = "Markdown" if use_markdown else None
+        await update.message.reply_text(reply, parse_mode=parse_mode)
     except Exception as e:
         logger.error(f"Error handling message from {chat_id}: {e}")
         await update.message.reply_text(
