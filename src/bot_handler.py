@@ -92,9 +92,11 @@ class BotHandler:
         return entry.parsed
 
     def confirm_transaction(self, pending_id: str, category_index: int | None = None) -> str | None:
-        entry = self._pending.pop(pending_id, None)
+        entry = self._pending.get(pending_id)
         if entry is None or entry.expires_at < datetime.now(tz=timezone.utc):
+            self._pending.pop(pending_id, None)  # clean up if expired
             return None
+        self._pending.pop(pending_id)  # idempotency: remove after first confirm
 
         parsed = entry.parsed
         category = parsed.category or "Outros"
@@ -123,7 +125,7 @@ class BotHandler:
             f"{emoji} {label} lançada!\n"
             f"Valor: R$ {parsed.amount:.2f}\n"
             f"Categoria: {category}\n"
-            f"Descrição: {parsed.description}\n"
+            f"Descrição: {parsed.description or parsed.raw}\n"
             f"Data: {tx_date}"
         )
 
