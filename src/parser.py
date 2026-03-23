@@ -22,7 +22,7 @@ Formato:
 
 Para QUERY: se a mensagem mencionar um mês específico (ex: "abril", "março de 2026", "mês que vem"), preencha query_month (1-12) e query_year (ex: 2026). Caso contrário, deixe null.
 
-Categorias despesa: Alimentação, Moradia, Transporte, Saúde, Lazer, Assinaturas & Serviços, Família, Parcelamentos, Despesas Variáveis (pessoal), Outros
+Categorias despesa: Moradia, Transporte, Parcelamentos, Família, Alimentação, Assinaturas & Serviços, Empréstimo Itaú, Saúde, Educação - MBA, Outros
 Categorias receita: Fixa mensal, Pagamentos, Outros"""
 
 
