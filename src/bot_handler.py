@@ -230,7 +230,7 @@ class BotHandler:
         label = "Despesa" if parsed.intent == Intent.EXPENSE else "Receita"
         text = (
             f"{emoji} {label} identificada\n"
-            f"Descrição: {parsed.description}\n"
+            f"Descrição: {parsed.description or parsed.raw}\n"
             f"Valor: R$ {parsed.amount:.2f}\n"
             f"Categoria: {parsed.category}\n\n"
             f"A categoria está correta?"
