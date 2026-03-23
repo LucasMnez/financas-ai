@@ -89,7 +89,7 @@ class BotHandler:
             return HELP_TEXT, False
         if parsed.intent in (Intent.EXPENSE, Intent.INCOME):
             return self._handle_transaction(parsed, chat_id), False
-        return self._handle_query(text, chat_id), True
+        return self._handle_query(text, chat_id, parsed.query_year, parsed.query_month), True
 
     def _handle_start(self, chat_id: int) -> str:
         user = self.store.get_user(chat_id)
@@ -164,13 +164,14 @@ class BotHandler:
             f"Data: {tx_date}"
         )
 
-    def _handle_query(self, text: str, chat_id: int) -> str:
+    def _handle_query(self, text: str, chat_id: int, query_year: int | None = None, query_month: int | None = None) -> str:
         from src.loader import load_csv
         from src.analyzer import analyze_month
         from src.assistant import FinancialAssistant
 
         today = date.today()
-        year, month = today.year, today.month
+        year = query_year or today.year
+        month = query_month or today.month
 
         expenses_path = _find_latest("despesas-*.csv")
         income_path = _find_latest("receitas-*.csv")

@@ -18,7 +18,9 @@ Intents:
 - HELP: ajuda ou comando desconhecido
 
 Formato:
-{"intent":"EXPENSE|INCOME|QUERY|HELP","amount":50.0,"description":"texto","category":"categoria","date":"YYYY-MM-DD ou null"}
+{"intent":"EXPENSE|INCOME|QUERY|HELP","amount":50.0,"description":"texto","category":"categoria","date":"YYYY-MM-DD ou null","query_month":null,"query_year":null}
+
+Para QUERY: se a mensagem mencionar um mês específico (ex: "abril", "março de 2026", "mês que vem"), preencha query_month (1-12) e query_year (ex: 2026). Caso contrário, deixe null.
 
 Categorias despesa: Alimentação, Moradia, Transporte, Saúde, Lazer, Assinaturas & Serviços, Família, Parcelamentos, Despesas Variáveis (pessoal), Outros
 Categorias receita: Fixa mensal, Pagamentos, Outros"""
@@ -39,6 +41,8 @@ class ParsedMessage:
     category: str | None
     date: str | None
     raw: str
+    query_month: int | None = None
+    query_year: int | None = None
 
 
 def parse_message(text: str) -> ParsedMessage:
@@ -66,6 +70,8 @@ def parse_message(text: str) -> ParsedMessage:
             category=data.get("category") or "Outros",
             date=data.get("date"),
             raw=text,
+            query_month=data.get("query_month"),
+            query_year=data.get("query_year"),
         )
     except (json.JSONDecodeError, KeyError, ValueError):
         return ParsedMessage(
