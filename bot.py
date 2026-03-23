@@ -68,8 +68,12 @@ async def _callback(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     if not query.data:
         return
 
-    parts = query.data.split(":")
-    action = parts[0]
+    try:
+        parts = query.data.split(":")
+        action = parts[0]
+    except Exception:
+        logger.warning(f"Malformed callback_data: {query.data!r}")
+        return
 
     if action == "confirm":
         pending_id = parts[1]
