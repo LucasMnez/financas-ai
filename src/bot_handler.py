@@ -64,6 +64,7 @@ class BotHandler:
         self.api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
         self.categorizer = categorizer or ExpenseCategorizer()
         self._history: dict[int, list[dict]] = {}
+        self._last_period: dict[int, tuple[int, int]] = {}
         self._pending: dict[str, PendingTransaction] = {}
 
         if self.admin_chat_id:
@@ -265,7 +266,12 @@ class BotHandler:
             income_df=income_df if not income_df.empty else None,
         )
 
-        if chat_id not in self._history:
+        # Reset history when the queried period changes to avoid contradictory context
+        current_period = (year, month)
+        if self._last_period.get(chat_id) != current_period:
+            self._history[chat_id] = []
+            self._last_period[chat_id] = current_period
+        elif chat_id not in self._history:
             self._history[chat_id] = []
 
         assistant = FinancialAssistant(report, api_key=self.api_key)
