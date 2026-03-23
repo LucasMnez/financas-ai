@@ -74,6 +74,8 @@ Use esses dados como base para responder perguntas, identificar padrões, alerta
 e sugerir melhorias. Seja objetivo e use os números reais disponíveis.
 Quando o usuário perguntar algo que não esteja nos dados, diga claramente que não tem essa informação.
 
+Formate suas respostas para Telegram: use *negrito* para destaques, listas com • ou -, mas NUNCA use ## ou # para títulos — o Telegram não suporta cabeçalhos Markdown.
+
 {context}
 """
 
