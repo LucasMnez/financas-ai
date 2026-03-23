@@ -51,7 +51,13 @@ def parse_message(text: str) -> ParsedMessage:
         )
         if not resp.content:
             raise ValueError("Empty response content")
-        data = json.loads(resp.content[0].text)
+        raw_text = resp.content[0].text.strip()
+        # Strip markdown code blocks if present
+        if raw_text.startswith("```"):
+            raw_text = raw_text.split("```")[1]
+            if raw_text.startswith("json"):
+                raw_text = raw_text[4:]
+        data = json.loads(raw_text)
         intent = Intent(data["intent"])
         return ParsedMessage(
             intent=intent,
